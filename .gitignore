@@ -1,0 +1,11 @@
+# C++
+build/
+*.o
+
+# Python
+__pycache__/
+.venv/
+
+# Datos y figuras generadas
+data/*
+!data/.gitkeep
