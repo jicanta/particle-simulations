@@ -7,8 +7,11 @@ namespace {
 
 void printUsage() {
     std::cerr << "uso: cim <comando> [opciones]\n\n"
-              << "  generate --n <N> [--l 20] [--seed 1] [--periodic]\n"
-              << "           [--static ../data/static.txt] [--dynamic ../data/dynamic.txt]\n";
+              << "  generate  --n <N> [--l 20] [--seed 1] [--periodic]\n"
+              << "            [--static ../data/static.txt] [--dynamic ../data/dynamic.txt]\n\n"
+              << "  neighbors [--rc 1] [--method brute] [--periodic]\n"
+              << "            [--static ../data/static.txt] [--dynamic ../data/dynamic.txt]\n"
+              << "            [--out ../data/neighbors.txt]\n";
 }
 
 }  // namespace
@@ -18,6 +21,9 @@ int main(int argc, char** argv) {
         const Arguments arguments(argc, argv);
         if (arguments.command() == "generate") {
             return runGenerate(arguments);
+        }
+        if (arguments.command() == "neighbors") {
+            return runNeighbors(arguments);
         }
         printUsage();
         return 1;
