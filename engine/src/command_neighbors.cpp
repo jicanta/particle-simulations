@@ -47,6 +47,18 @@ int runNeighbors(const Arguments& arguments) {
               << "tiempo: " << elapsed << " ms\n"
               << "salida: " << outputPath << "\n";
 
+    if (arguments.has("particle")) {
+        const int particleId = arguments.requiredInteger("particle");
+        if (particleId < 1 || particleId > static_cast<int>(neighbors.size())) {
+            throw std::invalid_argument("la particula " + std::to_string(particleId) + " no existe");
+        }
+        std::cout << "vecinos de " << particleId << ":";
+        for (int neighbor : neighbors.of(static_cast<std::size_t>(particleId - 1))) {
+            std::cout << " " << neighbor + 1;
+        }
+        std::cout << "\n";
+    }
+
     if (arguments.has("verify")) {
         const bool matches = neighbors == bruteForceNeighbors(state.particles, domain, interactionRadius);
         std::cout << "verificacion contra fuerza bruta: " << (matches ? "coincide" : "difiere") << "\n";
