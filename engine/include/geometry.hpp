@@ -2,20 +2,20 @@
 
 #include "particle.hpp"
 
-class Domain {
-public:
-    Domain(double side, bool periodic);
+// Area cuadrada de lado L, con paredes o con condiciones periodicas.
+struct Domain {
+  double side = 0.0;
+  bool periodic = false;
 
-    double side() const;
-    bool isPeriodic() const;
-
-    double borderDistance(const Particle& first, const Particle& second) const;
-    bool areNeighbors(const Particle& first, const Particle& second, double interactionRadius) const;
-
-private:
-    double axisDelta(double from, double to) const;
-    double squaredCenterDistance(const Particle& first, const Particle& second) const;
-
-    double side_;
-    bool periodic_;
+  // Distancia borde a borde: dist(centros) - r_i - r_j.
+  double borderDistance(const Particle& first, const Particle& second) const;
+  bool areNeighbors(const Particle& first, const Particle& second,
+                    double interactionRadius) const;
 };
+
+// Fila (o columna) de la grilla que contiene a una coordenada.
+int cellIndex(double coordinate, double cellSide, int cellsPerSide);
+
+// Fila (o columna) corrida en offset: envuelve si el contorno es periodico y
+// devuelve -1 si queda fuera del area.
+int shiftedIndex(int index, int offset, int cellsPerSide, bool periodic);

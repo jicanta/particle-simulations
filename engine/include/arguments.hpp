@@ -3,24 +3,24 @@
 #include <map>
 #include <string>
 
+// Opciones de linea de comandos: "cim <comando> --clave valor --flag".
 class Arguments {
-public:
-    Arguments(int argc, char** argv);
+ public:
+  Arguments(int argc, char** argv);
 
-    const std::string& command() const;
-    bool has(const std::string& name) const;
+  const std::string& command() const;
+  bool has(const std::string& name) const;
 
-    std::string text(const std::string& name, const std::string& fallback) const;
-    double number(const std::string& name, double fallback) const;
-    int integer(const std::string& name, int fallback) const;
-    unsigned int unsignedInteger(const std::string& name, unsigned int fallback) const;
+  std::string text(const std::string& name, const std::string& fallback) const;
+  double number(const std::string& name, double fallback) const;
+  int integer(const std::string& name, int fallback) const;
 
-    std::string requiredText(const std::string& name) const;
-    int requiredInteger(const std::string& name) const;
+  // Lanza std::invalid_argument si la opcion no fue pasada.
+  int requiredInteger(const std::string& name) const;
 
-private:
-    const std::string& valueOf(const std::string& name) const;
+ private:
+  const std::string& valueOf(const std::string& name) const;
 
-    std::string command_;
-    std::map<std::string, std::string> values_;
+  std::string command_;
+  std::map<std::string, std::string> values_;
 };

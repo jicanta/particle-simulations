@@ -5,6 +5,8 @@ Simulación de Sistemas — ITBA. Motor en C++, visualización en Python + matpl
 ```
 tp-1/
 ├── engine/           # C++: generación de partículas, CIM, fuerza bruta, timing
+│   ├── include/      # particle, geometry, neighbor_search, io, arguments…
+│   └── src/          # main + un archivo por comando (generate/neighbors/benchmark)
 ├── visualization/    # Python: figuras y curvas de tiempo
 ├── data/             # entrada y salida generadas (ignorado por git)
 └── ArchivosEjemplo/  # formatos de referencia de la cátedra
@@ -48,6 +50,9 @@ Buscar vecinos y reportar el tiempo de ejecución:
 `--m` por defecto usa el máximo admitido. `--particle <id>` imprime los vecinos
 de una partícula puntual, que es la que la visualización pinta de otro color.
 `--verify` corre además fuerza bruta y compara ambas listas.
+
+El tiempo reportado cubre la búsqueda completa, incluido el armado de las celdas:
+ese costo crece con `M` y es parte de lo que hace que exista un `M` óptimo.
 
 La salida (`data/neighbors.txt`) sigue el formato de la cátedra: una línea por
 partícula, `id,vecino1,vecino2,...`, con ids desde 1.
