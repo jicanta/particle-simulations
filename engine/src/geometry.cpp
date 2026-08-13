@@ -4,8 +4,7 @@
 
 namespace {
 
-// Distancia sobre un eje, tomando la imagen mas cercana si hay periodicidad.
-double axisDelta(double from, double to, const Domain& domain) {
+double minimumImageDelta(double from, double to, const Domain& domain) {
   const double delta = to - from;
   if (!domain.periodic) {
     return delta;
@@ -21,12 +20,12 @@ double axisDelta(double from, double to, const Domain& domain) {
 
 double squaredCenterDistance(const Domain& domain, const Particle& first,
                              const Particle& second) {
-  const double deltaX = axisDelta(first.x, second.x, domain);
-  const double deltaY = axisDelta(first.y, second.y, domain);
+  const double deltaX = minimumImageDelta(first.x, second.x, domain);
+  const double deltaY = minimumImageDelta(first.y, second.y, domain);
   return deltaX * deltaX + deltaY * deltaY;
 }
 
-}  // namespace
+}
 
 double Domain::borderDistance(const Particle& first,
                               const Particle& second) const {
@@ -48,10 +47,11 @@ int cellIndex(double coordinate, double cellSide, int cellsPerSide) {
   return index < cellsPerSide ? index : cellsPerSide - 1;
 }
 
-int shiftedIndex(int index, int offset, int cellsPerSide, bool periodic) {
+int shiftedIndexOrOutside(int index, int offset, int cellsPerSide,
+                          bool periodic) {
   const int shifted = index + offset;
   if (shifted >= 0 && shifted < cellsPerSide) {
     return shifted;
   }
-  return periodic ? (shifted + cellsPerSide) % cellsPerSide : -1;
+  return periodic ? (shifted + cellsPerSide) % cellsPerSide : kOutside;
 }

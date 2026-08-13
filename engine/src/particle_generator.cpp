@@ -10,7 +10,7 @@ namespace {
 
 constexpr int kAttemptsPerParticle = 2000;
 
-}  // namespace
+}
 
 Particles generateParticles(const GenerationRequest& request,
                             const Domain& domain) {
@@ -22,12 +22,10 @@ Particles generateParticles(const GenerationRequest& request,
         "el radio de las particulas no entra en el area");
   }
 
-  // Grilla auxiliar de celdas de lado >= 2*rmax: dos particulas solo pueden
-  // solaparse si estan en celdas contiguas.
   const int cellsPerSide =
       std::max(1, static_cast<int>(domain.side / (2.0 * request.maxRadius)));
   const double cellSide = domain.side / cellsPerSide;
-  std::vector<std::vector<int>> cells(cellsPerSide * cellsPerSide);
+  std::vector<std::vector<int>> placedByCell(cellsPerSide * cellsPerSide);
 
   Particles particles;
   particles.reserve(static_cast<std::size_t>(request.count));
@@ -37,14 +35,17 @@ Particles generateParticles(const GenerationRequest& request,
     const int column = cellIndex(candidate.x, cellSide, cellsPerSide);
     for (int rowOffset = -1; rowOffset <= 1; ++rowOffset) {
       for (int columnOffset = -1; columnOffset <= 1; ++columnOffset) {
-        const int neighborRow =
-            shiftedIndex(row, rowOffset, cellsPerSide, domain.periodic);
-        const int neighborColumn =
-            shiftedIndex(column, columnOffset, cellsPerSide, domain.periodic);
-        if (neighborRow < 0 || neighborColumn < 0) {
+        const int neighborRow = shiftedIndexOrOutside(row, rowOffset,
+                                                      cellsPerSide,
+                                                      domain.periodic);
+        const int neighborColumn = shiftedIndexOrOutside(column, columnOffset,
+                                                         cellsPerSide,
+                                                         domain.periodic);
+        if (neighborRow == kOutside || neighborColumn == kOutside) {
           continue;
         }
-        for (int placed : cells[neighborRow * cellsPerSide + neighborColumn]) {
+        for (int placed :
+             placedByCell[neighborRow * cellsPerSide + neighborColumn]) {
           if (domain.borderDistance(candidate, particles[placed]) <= 0.0) {
             return true;
           }
@@ -84,7 +85,7 @@ Particles generateParticles(const GenerationRequest& request,
 
     const int row = cellIndex(candidate.y, cellSide, cellsPerSide);
     const int column = cellIndex(candidate.x, cellSide, cellsPerSide);
-    cells[row * cellsPerSide + column].push_back(
+    placedByCell[row * cellsPerSide + column].push_back(
         static_cast<int>(particles.size()));
     particles.push_back(candidate);
   }

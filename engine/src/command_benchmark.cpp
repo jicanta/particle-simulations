@@ -20,7 +20,6 @@ struct Measurement {
   double deviation = 0.0;
 };
 
-// Promedio y desvio estandar muestral de los tiempos medidos.
 Measurement summarize(const std::vector<double>& samples) {
   Measurement measurement;
   for (double sample : samples) {
@@ -41,8 +40,6 @@ Measurement summarize(const std::vector<double>& samples) {
   return measurement;
 }
 
-// Repite la busqueda `repeats` veces y resume los tiempos. Se cronometra la
-// busqueda completa, incluido el armado de las celdas.
 Measurement measureSearch(const Particles& particles, const Domain& domain,
                           double interactionRadius, int cellsPerSide,
                           const std::string& method, int repeats) {
@@ -60,14 +57,13 @@ Measurement measureSearch(const Particles& particles, const Domain& domain,
   return summarize(samples);
 }
 
-// Escribe el CSV y a la vez lo muestra por pantalla.
 class ResultWriter {
  public:
   explicit ResultWriter(const std::string& path) : file_(path) {
     if (!file_) {
       throw std::runtime_error("no se pudo abrir para escritura: " + path);
     }
-    emit("m,n,l,repeticiones,promedio_ms,desvio_ms");
+    writeAndEcho("m,n,l,repeticiones,promedio_ms,desvio_ms");
   }
 
   void add(int cellsPerSide, int count, double side, int repeats,
@@ -76,11 +72,11 @@ class ResultWriter {
     line << std::setprecision(10) << cellsPerSide << "," << count << "," << side
          << "," << repeats << "," << measurement.mean << ","
          << measurement.deviation;
-    emit(line.str());
+    writeAndEcho(line.str());
   }
 
  private:
-  void emit(const std::string& line) {
+  void writeAndEcho(const std::string& line) {
     file_ << line << "\n";
     std::cout << line << "\n";
   }
@@ -88,7 +84,6 @@ class ResultWriter {
   std::ofstream file_;
 };
 
-// Barrido de M para un N fijo: de 1 (fuerza bruta) al maximo admitido.
 void sweepCells(const Arguments& arguments, GenerationRequest request,
                 const std::string& method, double interactionRadius,
                 int repeats, bool periodic) {
@@ -106,8 +101,6 @@ void sweepCells(const Arguments& arguments, GenerationRequest request,
   }
 }
 
-// Barrido de N. Con --density el lado crece como sqrt(N/densidad) para
-// mantener la densidad constante; sin ella L queda fijo.
 void sweepCount(const Arguments& arguments, GenerationRequest request,
                 const std::string& method, double interactionRadius,
                 int repeats, bool periodic) {
@@ -116,6 +109,9 @@ void sweepCount(const Arguments& arguments, GenerationRequest request,
   const int steps = arguments.integer("steps", 10);
   const double density = arguments.number("density", 0.0);
   const double fixedSide = arguments.number("l", 20.0);
+  if (steps < 1) {
+    throw std::invalid_argument("--steps debe ser mayor o igual a 1");
+  }
 
   ResultWriter writer(arguments.text("out", "../data/benchmark_n.csv"));
   for (int step = 0; step < steps; ++step) {
@@ -138,13 +134,20 @@ void sweepCount(const Arguments& arguments, GenerationRequest request,
   }
 }
 
-}  // namespace
+}
 
 int runBenchmark(const Arguments& arguments) {
   const std::string sweep = arguments.text("sweep", "m");
   const std::string method = arguments.text("method", "cim");
+  if (method != "cim" && method != "brute") {
+    throw std::invalid_argument("metodo desconocido: " + method);
+  }
+
   const double interactionRadius = arguments.number("rc", 1.0);
   const int repeats = arguments.integer("repeats", 100);
+  if (repeats < 1) {
+    throw std::invalid_argument("--repeats debe ser mayor o igual a 1");
+  }
   const bool periodic = arguments.has("periodic");
 
   GenerationRequest request;

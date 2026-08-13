@@ -1,6 +1,7 @@
 #include "neighbor_search.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <stdexcept>
 #include <string>
@@ -18,7 +19,6 @@ void sortEntries(NeighborList& neighbors) {
   }
 }
 
-// Reparte las particulas en las M*M celdas, por indice de celda plano.
 std::vector<std::vector<int>> distribute(const Particles& particles,
                                          const Domain& domain,
                                          int cellsPerSide) {
@@ -32,7 +32,46 @@ std::vector<std::vector<int>> distribute(const Particles& particles,
   return cells;
 }
 
-}  // namespace
+class CellSet {
+ public:
+  bool contains(int cell) const {
+    return std::find(items_.begin(), items_.begin() + count_, cell) !=
+           items_.begin() + count_;
+  }
+
+  void add(int cell) { items_[count_++] = cell; }
+
+  const int* begin() const { return items_.data(); }
+  const int* end() const { return items_.data() + count_; }
+
+ private:
+  std::array<int, 8> items_{};
+  std::size_t count_ = 0;
+};
+
+CellSet higherIndexNeighborCells(int row, int column, int cellsPerSide,
+                                 bool periodic) {
+  const int cell = row * cellsPerSide + column;
+  CellSet higher;
+  for (int rowOffset = -1; rowOffset <= 1; ++rowOffset) {
+    for (int columnOffset = -1; columnOffset <= 1; ++columnOffset) {
+      const int neighborRow =
+          shiftedIndexOrOutside(row, rowOffset, cellsPerSide, periodic);
+      const int neighborColumn =
+          shiftedIndexOrOutside(column, columnOffset, cellsPerSide, periodic);
+      if (neighborRow == kOutside || neighborColumn == kOutside) {
+        continue;
+      }
+      const int other = neighborRow * cellsPerSide + neighborColumn;
+      if (other > cell && !higher.contains(other)) {
+        higher.add(other);
+      }
+    }
+  }
+  return higher;
+}
+
+}
 
 std::size_t pairCount(const NeighborList& neighbors) {
   std::size_t total = 0;
@@ -43,8 +82,8 @@ std::size_t pairCount(const NeighborList& neighbors) {
 }
 
 int maxCellsPerSide(double side, double interactionRadius, double maxRadius) {
-  const double reach = interactionRadius + 2.0 * maxRadius;
-  return std::max(static_cast<int>(std::ceil(side / reach)) - 1, 1);
+  const double reachBetweenCenters = interactionRadius + 2.0 * maxRadius;
+  return std::max(static_cast<int>(std::ceil(side / reachBetweenCenters)) - 1, 1);
 }
 
 NeighborList bruteForceNeighbors(const Particles& particles,
@@ -91,8 +130,7 @@ NeighborList cellIndexNeighbors(const Particles& particles,
 
   for (int row = 0; row < cellsPerSide; ++row) {
     for (int column = 0; column < cellsPerSide; ++column) {
-      const int cell = row * cellsPerSide + column;
-      const std::vector<int>& here = cells[cell];
+      const std::vector<int>& here = cells[row * cellsPerSide + column];
 
       for (std::size_t first = 0; first < here.size(); ++first) {
         for (std::size_t second = first + 1; second < here.size(); ++second) {
@@ -100,32 +138,11 @@ NeighborList cellIndexNeighbors(const Particles& particles,
         }
       }
 
-      // Solo contra celdas de indice mayor, para no repetir pares. Con M chico
-      // y contorno periodico varios offsets caen en la misma celda, asi que
-      // ademas se descartan las ya visitadas.
-      int visited[8];
-      int visitedCount = 0;
-      for (int rowOffset = -1; rowOffset <= 1; ++rowOffset) {
-        for (int columnOffset = -1; columnOffset <= 1; ++columnOffset) {
-          const int neighborRow =
-              shiftedIndex(row, rowOffset, cellsPerSide, domain.periodic);
-          const int neighborColumn =
-              shiftedIndex(column, columnOffset, cellsPerSide, domain.periodic);
-          if (neighborRow < 0 || neighborColumn < 0) {
-            continue;
-          }
-          const int other = neighborRow * cellsPerSide + neighborColumn;
-          if (other <= cell ||
-              std::find(visited, visited + visitedCount, other) !=
-                  visited + visitedCount) {
-            continue;
-          }
-          visited[visitedCount++] = other;
-
-          for (int first : here) {
-            for (int second : cells[other]) {
-              pairUp(first, second);
-            }
+      for (int other : higherIndexNeighborCells(row, column, cellsPerSide,
+                                                domain.periodic)) {
+        for (int first : here) {
+          for (int second : cells[other]) {
+            pairUp(first, second);
           }
         }
       }

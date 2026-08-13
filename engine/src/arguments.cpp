@@ -1,5 +1,6 @@
 #include "arguments.hpp"
 
+#include <cstddef>
 #include <stdexcept>
 #include <vector>
 
@@ -9,7 +10,41 @@ bool isOptionName(const std::string& token) {
   return token.size() > 2 && token.compare(0, 2, "--") == 0;
 }
 
-}  // namespace
+[[noreturn]] void rejectValue(const std::string& name, const std::string& value,
+                              const std::string& expected) {
+  throw std::invalid_argument("--" + name + " espera " + expected +
+                              " y recibio \"" + value + "\"");
+}
+
+int toInteger(const std::string& name, const std::string& value) {
+  std::size_t consumed = 0;
+  int parsed = 0;
+  try {
+    parsed = std::stoi(value, &consumed);
+  } catch (const std::exception&) {
+    rejectValue(name, value, "un entero");
+  }
+  if (consumed != value.size()) {
+    rejectValue(name, value, "un entero");
+  }
+  return parsed;
+}
+
+double toNumber(const std::string& name, const std::string& value) {
+  std::size_t consumed = 0;
+  double parsed = 0.0;
+  try {
+    parsed = std::stod(value, &consumed);
+  } catch (const std::exception&) {
+    rejectValue(name, value, "un numero");
+  }
+  if (consumed != value.size()) {
+    rejectValue(name, value, "un numero");
+  }
+  return parsed;
+}
+
+}
 
 Arguments::Arguments(int argc, char** argv) {
   std::vector<std::string> tokens(argv + (argc > 0 ? 1 : 0), argv + argc);
@@ -55,13 +90,13 @@ std::string Arguments::text(const std::string& name,
 }
 
 double Arguments::number(const std::string& name, double fallback) const {
-  return has(name) ? std::stod(valueOf(name)) : fallback;
+  return has(name) ? toNumber(name, valueOf(name)) : fallback;
 }
 
 int Arguments::integer(const std::string& name, int fallback) const {
-  return has(name) ? std::stoi(valueOf(name)) : fallback;
+  return has(name) ? toInteger(name, valueOf(name)) : fallback;
 }
 
 int Arguments::requiredInteger(const std::string& name) const {
-  return std::stoi(valueOf(name));
+  return toInteger(name, valueOf(name));
 }

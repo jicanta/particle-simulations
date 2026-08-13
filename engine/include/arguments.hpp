@@ -3,7 +3,6 @@
 #include <map>
 #include <string>
 
-// Opciones de linea de comandos: "cim <comando> --clave valor --flag".
 class Arguments {
  public:
   Arguments(int argc, char** argv);
@@ -14,8 +13,6 @@ class Arguments {
   std::string text(const std::string& name, const std::string& fallback) const;
   double number(const std::string& name, double fallback) const;
   int integer(const std::string& name, int fallback) const;
-
-  // Lanza std::invalid_argument si la opcion no fue pasada.
   int requiredInteger(const std::string& name) const;
 
  private:

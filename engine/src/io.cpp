@@ -24,9 +24,8 @@ std::ofstream openForWriting(const std::string& path) {
   return stream;
 }
 
-// Proxima linea con contenido. Leer por linea permite ignorar las columnas de
-// mas (por ejemplo las velocidades del archivo dinamico).
-std::istringstream nextLine(std::istream& stream, const std::string& path) {
+std::istringstream nextLineWithContent(std::istream& stream,
+                                       const std::string& path) {
   std::string line;
   while (std::getline(stream, line)) {
     if (line.find_first_not_of(" \t\r") != std::string::npos) {
@@ -36,25 +35,25 @@ std::istringstream nextLine(std::istream& stream, const std::string& path) {
   throw std::runtime_error("archivo incompleto: " + path);
 }
 
-}  // namespace
+}
 
 SystemState readSystem(const std::string& staticPath,
                        const std::string& dynamicPath) {
   std::ifstream staticStream = openForReading(staticPath);
 
   int count = 0;
-  nextLine(staticStream, staticPath) >> count;
+  nextLineWithContent(staticStream, staticPath) >> count;
   if (count <= 0) {
     throw std::runtime_error("cantidad de particulas invalida en: " +
                              staticPath);
   }
 
   SystemState state;
-  nextLine(staticStream, staticPath) >> state.side;
+  nextLineWithContent(staticStream, staticPath) >> state.side;
   state.particles.resize(static_cast<std::size_t>(count));
 
   for (Particle& particle : state.particles) {
-    std::istringstream fields = nextLine(staticStream, staticPath);
+    std::istringstream fields = nextLineWithContent(staticStream, staticPath);
     fields >> particle.radius;
     if (!(fields >> particle.property)) {
       particle.property = 1.0;
@@ -62,9 +61,9 @@ SystemState readSystem(const std::string& staticPath,
   }
 
   std::ifstream dynamicStream = openForReading(dynamicPath);
-  nextLine(dynamicStream, dynamicPath) >> state.time;
+  nextLineWithContent(dynamicStream, dynamicPath) >> state.time;
   for (Particle& particle : state.particles) {
-    nextLine(dynamicStream, dynamicPath) >> particle.x >> particle.y;
+    nextLineWithContent(dynamicStream, dynamicPath) >> particle.x >> particle.y;
   }
 
   return state;

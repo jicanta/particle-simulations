@@ -108,6 +108,11 @@ vecinos que quedan del otro lado del área. `--cells` superpone la grilla M×M.
 pasar a contorno periódico, así las dos figuras muestran el mismo caso y la
 diferencia entre ambos modos queda a la vista; `--particle <id>` fuerza otra.
 
+Los archivos de `data/` no guardan `rc`, `M` ni el tipo de contorno, así que
+esos valores hay que pasárselos al script iguales a como se corrió el motor: en
+`plot_particles.py` cambian la figura, y en `plot_m.py` / `plot_n.py` el `--rc`
+solo aparece en el título.
+
 ## Tamaño de celda
 
 Con partículas puntuales alcanza con `L/M > rc`. Como acá los radios no son nulos,
