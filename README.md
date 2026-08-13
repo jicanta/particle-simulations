@@ -7,7 +7,7 @@ tp-1/
 ├── engine/           # C++: generación de partículas, CIM, fuerza bruta, timing
 │   ├── include/      # particle, geometry, neighbor_search, io, arguments…
 │   └── src/          # main + un archivo por comando (generate/neighbors/benchmark)
-├── visualization/    # Python: figuras y curvas de tiempo
+├── visualization/    # Python: figuras y curvas de tiempo (matplotlib)
 ├── data/             # entrada y salida generadas (ignorado por git)
 └── ArchivosEjemplo/  # formatos de referencia de la cátedra
 ```
@@ -69,6 +69,45 @@ Cada corrida escribe un CSV con columnas `m,n,l,repeticiones,promedio_ms,desvio_
 Con `--density` el lado se recalcula como `sqrt(N/densidad)` para mantener la
 densidad constante; sin ella `L` queda fijo.
 
+## Visualización
+
+Python 3 con `numpy` y `matplotlib`. Los scripts leen únicamente los archivos de
+`data/` y escriben las figuras en `data/figuras/`.
+
+Todo de una vez (corre el motor y genera las cuatro figuras del TP):
+
+```bash
+cd visualization
+python3 make_figures.py
+```
+
+Con `--skip-engine` reusa los archivos que ya están en `data/`, y `--repeats`
+cambia la cantidad de mediciones por punto (100 por defecto).
+
+Cada figura también se puede generar por separado:
+
+```bash
+# Punto 1: sistema completo, partícula de referencia y sus vecinos
+python3 plot_particles.py --particle 91 --rc 1 --cells
+python3 plot_particles.py --particle 91 --neighbors ../data/neighbors_periodico.txt --periodic
+
+# Punto 3: tiempo vs M, una curva por archivo
+python3 plot_m.py ../data/benchmark_m_intermedio.csv ../data/benchmark_m_maximo.csv
+
+# Punto 4: tiempo vs N, densidad libre y densidad fija superpuestas
+python3 plot_n.py --libre ../data/benchmark_n_libre.csv --fija ../data/benchmark_n_fija.csv
+```
+
+En la figura de partículas el círculo punteado marca el alcance `r_i + rc` de la
+partícula de referencia: como la distancia se mide borde a borde, un vecino
+cuenta si su borde toca ese círculo, no su centro. Con `--periodic` se dibujan
+además las ocho copias trasladadas del alcance, que son las que explican los
+vecinos que quedan del otro lado del área. `--cells` superpone la grilla M×M.
+
+`make_figures.py` elige como referencia la partícula que más vecinos gana al
+pasar a contorno periódico, así las dos figuras muestran el mismo caso y la
+diferencia entre ambos modos queda a la vista; `--particle <id>` fuerza otra.
+
 ## Tamaño de celda
 
 Con partículas puntuales alcanza con `L/M > rc`. Como acá los radios no son nulos,
@@ -76,11 +115,24 @@ el borde de una partícula puede caer en una celda vecina aunque su centro no, y
 alcance real entre centros pasa a ser `rc + r_i + r_j`. La condición se vuelve
 entonces `L/M > rc + 2*rmax`, y el motor rechaza con error cualquier `M` que la viole.
 
+## Resultados
+
+Con `L=20`, `rc=1` y `r_i = U[0.23, 0.26]` el máximo `M` admitido es 13 y el
+máximo `N` que entra sin superponer es ~1150.
+
+- **Punto 3** (`tiempo_vs_m.png`): el tiempo cae fuerte de `M=1` (fuerza bruta) a
+  `M≈8` y después se aplana. El óptimo queda cerca del máximo admitido (11-13,
+  la diferencia entre esos valores está dentro de las barras de error): más
+  celdas achican las listas a comparar, pero armarlas cuesta cada vez más.
+- **Punto 4** (`tiempo_vs_n.png`): a densidad fija el tiempo crece casi lineal
+  con `N` (exponente ajustado ≈1.2) y a densidad libre (`L=20` fijo) crece
+  bastante más rápido (≈1.6), porque al aumentar la densidad cada celda contiene
+  más partículas.
+
 ## Estado
 
-Motor completo: generación, CIM (paredes y periódico), fuerza bruta y benchmarks.
-La salida fue verificada contra fuerza bruta para todos los `M` válidos en ambos
-modos de contorno, y reproduce exactamente el archivo de referencia
+Motor y visualización completos: generación, CIM (paredes y periódico), fuerza
+bruta, benchmarks y las figuras de los puntos 1, 3 y 4. La salida fue verificada
+contra fuerza bruta para todos los `M` válidos en ambos modos de contorno, y
+reproduce exactamente el archivo de referencia
 `ArchivosEjemplo/AlgunosVecinos_100_rc6.txt`.
-
-Pendiente: la visualización en Python.
