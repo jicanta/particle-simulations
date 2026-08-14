@@ -35,12 +35,10 @@ Particles generateParticles(const GenerationRequest& request,
     const int column = cellIndex(candidate.x, cellSide, cellsPerSide);
     for (int rowOffset = -1; rowOffset <= 1; ++rowOffset) {
       for (int columnOffset = -1; columnOffset <= 1; ++columnOffset) {
-        const int neighborRow = shiftedIndexOrOutside(row, rowOffset,
-                                                      cellsPerSide,
-                                                      domain.periodic);
-        const int neighborColumn = shiftedIndexOrOutside(column, columnOffset,
-                                                         cellsPerSide,
-                                                         domain.periodic);
+        const int neighborRow = shiftedIndexOrOutside(
+            row, rowOffset, cellsPerSide, domain.periodic);
+        const int neighborColumn = shiftedIndexOrOutside(
+            column, columnOffset, cellsPerSide, domain.periodic);
         if (neighborRow == kOutside || neighborColumn == kOutside) {
           continue;
         }

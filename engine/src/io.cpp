@@ -35,7 +35,7 @@ std::istringstream nextLineWithContent(std::istream& stream,
   throw std::runtime_error("archivo incompleto: " + path);
 }
 
-}
+}  // namespace
 
 SystemState readSystem(const std::string& staticPath,
                        const std::string& dynamicPath) {

@@ -44,7 +44,7 @@ double toNumber(const std::string& name, const std::string& value) {
   return parsed;
 }
 
-}
+}  // namespace
 
 Arguments::Arguments(int argc, char** argv) {
   std::vector<std::string> tokens(argv + (argc > 0 ? 1 : 0), argv + argc);

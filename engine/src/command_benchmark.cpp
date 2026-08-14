@@ -90,8 +90,8 @@ void sweepCells(const Arguments& arguments, GenerationRequest request,
   const Domain domain{arguments.number("l", 20.0), periodic};
   request.count = arguments.requiredInteger("n");
   const Particles particles = generateParticles(request, domain);
-  const int maxCells = maxCellsPerSide(domain.side, interactionRadius,
-                                       largestRadius(particles));
+  const int maxCells =
+      maxCellsPerSide(domain.side, interactionRadius, largestRadius(particles));
 
   ResultWriter writer(arguments.text("out", "../data/benchmark_m.csv"));
   for (int cellsPerSide = 1; cellsPerSide <= maxCells; ++cellsPerSide) {
@@ -125,8 +125,8 @@ void sweepCount(const Arguments& arguments, GenerationRequest request,
     const Particles particles = generateParticles(request, domain);
     const int maxCells =
         maxCellsPerSide(side, interactionRadius, largestRadius(particles));
-    const int cellsPerSide = std::min(arguments.integer("m", maxCells),
-                                      maxCells);
+    const int cellsPerSide =
+        std::min(arguments.integer("m", maxCells), maxCells);
 
     writer.add(cellsPerSide, request.count, side, repeats,
                measureSearch(particles, domain, interactionRadius, cellsPerSide,
@@ -134,7 +134,7 @@ void sweepCount(const Arguments& arguments, GenerationRequest request,
   }
 }
 
-}
+}  // namespace
 
 int runBenchmark(const Arguments& arguments) {
   const std::string sweep = arguments.text("sweep", "m");

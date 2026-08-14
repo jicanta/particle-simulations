@@ -71,7 +71,7 @@ CellSet higherIndexNeighborCells(int row, int column, int cellsPerSide,
   return higher;
 }
 
-}
+}  // namespace
 
 std::size_t pairCount(const NeighborList& neighbors) {
   std::size_t total = 0;
@@ -83,7 +83,8 @@ std::size_t pairCount(const NeighborList& neighbors) {
 
 int maxCellsPerSide(double side, double interactionRadius, double maxRadius) {
   const double reachBetweenCenters = interactionRadius + 2.0 * maxRadius;
-  return std::max(static_cast<int>(std::ceil(side / reachBetweenCenters)) - 1, 1);
+  return std::max(static_cast<int>(std::ceil(side / reachBetweenCenters)) - 1,
+                  1);
 }
 
 NeighborList bruteForceNeighbors(const Particles& particles,

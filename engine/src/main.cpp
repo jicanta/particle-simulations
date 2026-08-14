@@ -26,7 +26,7 @@ void printUsage() {
       << "                       [--min-radius 0.23] [--max-radius 0.26]\n";
 }
 
-}
+}  // namespace
 
 int main(int argc, char** argv) {
   try {

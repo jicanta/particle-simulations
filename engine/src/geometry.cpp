@@ -25,7 +25,7 @@ double squaredCenterDistance(const Domain& domain, const Particle& first,
   return deltaX * deltaX + deltaY * deltaY;
 }
 
-}
+}  // namespace
 
 double Domain::borderDistance(const Particle& first,
                               const Particle& second) const {
